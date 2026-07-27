@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>מחולל קישורים אוטומטי</title>
+<title>מחולל קישורים — העלאה אוטומטית</title>
 <style>
   :root{--bg:#0f1115;--card:#181b22;--line:#2a2f3a;--txt:#e8eaf0;
     --dim:#9aa2b1;--acc:#25d366;--acc2:#128c7e;--warn:#f0b429;--err:#ff6b6b}
@@ -19,93 +19,111 @@
   label:first-child{margin-top:0}
   input,textarea{width:100%;background:#0f1218;border:1px solid var(--line);border-radius:8px;
     color:var(--txt);padding:10px 12px;font-size:14px;font-family:inherit;direction:rtl}
-  input[dir=ltr]{direction:ltr;text-align:left}
-  textarea{min-height:60px;resize:vertical}
-  .big{font-size:16px;padding:14px}
+  input[dir=ltr]{direction:ltr;text-align:left;font-family:Consolas,monospace}
+  textarea{min-height:56px;resize:vertical}
+  .big{font-size:17px;padding:15px}
+  .row{display:flex;gap:12px;flex-wrap:wrap}.row>div{flex:1;min-width:150px}
   button{background:var(--acc);color:#06210f;border:0;border-radius:8px;padding:12px 22px;
     font-size:15px;font-weight:600;cursor:pointer;font-family:inherit}
   button:hover{background:#1fb857}
-  button:disabled{opacity:.5;cursor:default}
-  button.ghost{background:transparent;border:1px solid var(--line);color:var(--txt);font-weight:500}
+  button:disabled{opacity:.45;cursor:default}
+  button.ghost{background:transparent;border:1px solid var(--line);color:var(--txt);font-weight:500;padding:9px 16px;font-size:14px}
   button.ghost:hover{background:#20242e}
   .btns{display:flex;gap:10px;margin-top:16px;flex-wrap:wrap;align-items:center}
-  .status{font-size:13px;color:var(--dim);margin-top:12px;min-height:20px}
-  .status b{color:var(--acc)}
-  .status .bad{color:var(--err)}
+  .fatal{background:#3a1c1c;border:1px solid var(--err);color:#ffc9c9;border-radius:10px;
+    padding:14px;font-size:14px;margin-bottom:16px;display:none}
+  .fatal.show{display:block}
+  details{border:1px solid var(--line);border-radius:10px;padding:12px 16px;margin-bottom:16px;background:#141821}
+  details summary{cursor:pointer;font-size:14px;color:var(--dim);font-weight:600}
+  details[open] summary{margin-bottom:10px;color:var(--txt)}
+  .steps{margin-top:16px;font-size:14px;display:none}
+  .steps.show{display:block}
+  .step{display:flex;gap:10px;align-items:flex-start;padding:4px 0;color:var(--dim)}
+  .step .ic{width:20px;flex:0 0 20px;text-align:center}
+  .step.done{color:var(--txt)} .step.done .ic{color:var(--acc)}
+  .step.bad{color:var(--err)}
   .out{display:none}.out.show{display:block}
   .link{background:#0f1218;border:1px solid var(--acc2);border-radius:8px;padding:12px;
     font-family:Consolas,monospace;font-size:14px;direction:ltr;text-align:left;word-break:break-all}
-  .preview{background:#1f2c33;border-radius:10px;overflow:hidden;max-width:400px;margin-top:12px}
+  .preview{background:#1f2c33;border-radius:10px;overflow:hidden;max-width:400px;margin-top:14px}
   .preview img{width:100%;display:block;background:#000}
   .preview .meta{padding:10px 12px}
   .preview .t{font-size:14px;font-weight:600;color:#e9edef}
   .preview .d{font-size:12px;color:#8696a0}
   .preview .u{font-size:12px;color:#8696a0;margin-top:4px;direction:ltr;text-align:left}
   .note{font-size:13px;color:var(--dim);border-right:3px solid var(--warn);padding:2px 12px;margin-top:16px}
-  .fatal{background:#3a1c1c;border:1px solid var(--err);color:#ffc9c9;border-radius:10px;
-    padding:14px;font-size:14px;margin-bottom:16px;display:none}
-  .fatal.show{display:block}
   code{background:#0f1218;padding:2px 6px;border-radius:4px;font-size:13px;direction:ltr;display:inline-block}
-  ol{padding-right:20px;font-size:14px;color:var(--dim)}
-  ol li{margin-bottom:5px}
-  .drop{border:1px dashed var(--line);border-radius:8px;padding:12px;text-align:center;
-    color:var(--dim);cursor:pointer;font-size:13px;margin-top:10px}
-  .drop:hover,.drop.over{border-color:var(--acc);color:var(--txt)}
+  a{color:var(--acc)}
+  ol{padding-right:20px;font-size:13.5px;color:var(--dim)}
+  ol li{margin-bottom:6px}
+  .ok{color:var(--acc)}
 </style>
 </head>
 <body>
 <div class="wrap">
 
-  <h1>מחולל קישורים אוטומטי</h1>
-  <div class="sub">הדבק קישור יוטיוב — הכותרת והטאמבנייל נמשכים לבד.</div>
+  <h1>מחולל קישורים — העלאה אוטומטית</h1>
+  <div class="sub">הדבק קישור יוטיוב ולחץ פעם אחת. הכל נמשך, נבנה ומועלה לריפו לבד.</div>
 
   <div class="fatal" id="fatal">
-    <b>הדף פתוח כקובץ מקומי.</b> המשיכה האוטומטית עובדת רק מכתובת https.
-    העלה את הקובץ הזה לריפו שלך ופתח אותו משם — למשל
+    <b>הדף פתוח כקובץ מקומי.</b> פתח אותו מהכתובת
     <code>https://ladat1234.github.io/shishiur/gen.html</code>
   </div>
 
-  <div class="card">
-    <label>כתובת הבסיס שלך</label>
-    <input id="base" dir="ltr" value="">
+  <details id="setup">
+    <summary>הגדרות חיבור לריפו — פעם אחת</summary>
 
-    <label>קישור יוטיוב</label>
-    <input id="url" class="big" dir="ltr" placeholder="https://www.youtube.com/watch?v=...">
-
-    <div class="btns">
-      <button id="go">משוך וצור</button>
-      <span class="status" id="status"></span>
+    <div class="row">
+      <div><label>שם משתמש</label><input id="owner" dir="ltr"></div>
+      <div><label>שם הריפו</label><input id="repo" dir="ltr"></div>
+      <div><label>ענף</label><input id="branch" dir="ltr" value="main"></div>
     </div>
 
-    <div class="drop" id="drop">אם המשיכה נכשלה — גרור לכאן תמונה ידנית</div>
-    <input type="file" id="file" accept="image/*" style="display:none">
+    <label>Personal Access Token</label>
+    <input id="token" dir="ltr" type="password" placeholder="github_pat_...">
+
+    <div class="btns">
+      <button class="ghost" id="save">שמור</button>
+      <button class="ghost" id="test">בדוק חיבור</button>
+      <button class="ghost" id="forget">מחק טוקן</button>
+      <span id="setupStatus" style="font-size:13px;color:var(--dim)"></span>
+    </div>
+
+    <div class="note" style="margin-top:18px">
+      <b>איך מייצרים טוקן:</b>
+      <ol style="margin-top:8px">
+        <li>היכנס ל־<a href="https://github.com/settings/personal-access-tokens/new" target="_blank">Fine-grained tokens → Generate new token</a></li>
+        <li><b>Token name</b>: כל שם. <b>Expiration</b>: בחר שנה או No expiration</li>
+        <li><b>Repository access</b> → <b>Only select repositories</b> → בחר את הריפו הזה בלבד</li>
+        <li><b>Permissions</b> → Repository permissions → <b>Contents</b> → שנה ל־<b>Read and write</b></li>
+        <li>Generate token → העתק והדבק כאן → שמור</li>
+      </ol>
+      הטוקן נשמר בדפדפן הזה בלבד ונשלח רק ל־api.github.com. הגבל אותו לריפו אחד
+      כפי שכתוב בסעיף 3 — כך גם אם יאבד, הנזק האפשרי מוגבל לתיקייה הזו.
+    </div>
+  </details>
+
+  <div class="card">
+    <label>קישור יוטיוב</label>
+    <input id="url" class="big" dir="ltr" placeholder="https://www.youtube.com/watch?v=...">
+    <div class="btns"><button id="go">צור והעלה</button></div>
+
+    <div class="steps" id="steps">
+      <div class="step" id="s1"><span class="ic">○</span><span>משיכת כותרת</span></div>
+      <div class="step" id="s2"><span class="ic">○</span><span>משיכת טאמבנייל</span></div>
+      <div class="step" id="s3"><span class="ic">○</span><span>העלאת התמונה לריפו</span></div>
+      <div class="step" id="s4"><span class="ic">○</span><span>העלאת הדף לריפו</span></div>
+      <div class="step" id="s5"><span class="ic">○</span><span>המתנה לפרסום</span></div>
+    </div>
   </div>
 
   <div class="card out" id="out">
-    <h2>עריכה</h2>
-    <label>כותרת</label>
-    <input id="title">
-    <label>תיאור</label>
-    <textarea id="desc"></textarea>
-    <div class="btns"><button class="ghost" id="rebuild">עדכן</button></div>
-
-    <h2 style="margin-top:22px">הורדה</h2>
-    <div class="btns" style="margin-top:0">
-      <button id="dlImg">הורד תמונה</button>
-      <button id="dlHtml">הורד HTML</button>
-    </div>
-    <ol style="margin-top:14px">
-      <li>העלה את שני הקבצים לריפו</li>
-      <li>המתן דקה</li>
-      <li>Scrape Again בדיבאגר</li>
-      <li>רק אז שתף</li>
-    </ol>
-
-    <h2 style="margin-top:22px">הקישור</h2>
+    <h2>הקישור מוכן</h2>
     <div class="link" id="finalLink"></div>
     <div class="btns">
-      <button id="copy">העתק</button>
+      <button id="copy">העתק קישור</button>
       <button class="ghost" id="dbg">Sharing Debugger</button>
+      <button class="ghost" id="openPage">פתח את הדף</button>
     </div>
 
     <div class="preview">
@@ -117,86 +135,157 @@
       </div>
     </div>
 
+    <details style="margin-top:16px">
+      <summary>עריכת כותרת ותיאור והעלאה מחדש</summary>
+      <label>כותרת</label><input id="title">
+      <label>תיאור</label><textarea id="desc"></textarea>
+      <div class="btns"><button class="ghost" id="reup">העלה מחדש</button>
+        <span id="reupStatus" style="font-size:13px;color:var(--dim)"></span></div>
+    </details>
+
     <div class="note">
-      אם הדיבאגר לא מציג תמונה בפעם הראשונה — לחץ Scrape Again שוב.
-      המשיכה הראשונה לעיתים רק מפעילה את התהליך ברקע.
+      בפעם הראשונה שאתה משתף — לחץ קודם <b>Sharing Debugger</b> ואז Scrape Again.
+      זה מכריח את Meta למשוך את הדף החדש במקום להסתמך על מטמון.
     </div>
   </div>
 
 </div>
 
 <script>
+var K="ytprev.cfg";
 var S={id:"",title:"",desc:"",blob:null,w:0,h:0,localUrl:"",html:"",htmlName:"",imgName:""};
 
 function $(i){return document.getElementById(i);}
 function esc(s){return String(s||"").replace(/&/g,"&amp;").replace(/</g,"&lt;")
   .replace(/>/g,"&gt;").replace(/"/g,"&quot;").replace(/'/g,"&#39;");}
-function say(m,bad){ $("status").innerHTML = bad ? '<span class="bad">'+m+'</span>' : m; }
 
+function step(n,state,extra){
+  var e=$("s"+n); if(!e) return;
+  e.className="step"+(state==="bad"?" bad":state==="done"?" done":"");
+  e.querySelector(".ic").textContent = state==="done"?"✓":state==="bad"?"✕":state==="run"?"…":"○";
+  if(extra) e.lastElementChild.innerHTML = e.lastElementChild.textContent.split(" — ")[0]+" — "+extra;
+}
+function resetSteps(){
+  $("steps").classList.add("show");
+  [1,2,3,4,5].forEach(function(n){
+    var e=$("s"+n); e.className="step"; e.querySelector(".ic").textContent="○";
+  });
+}
+
+/* ---------- הגדרות ---------- */
 if(location.protocol==="file:") $("fatal").classList.add("show");
-$("base").value = location.protocol==="file:" ? "" :
-  location.origin + location.pathname.replace(/\/[^\/]*$/,"");
 
+(function initCfg(){
+  var c={};
+  try{ c=JSON.parse(localStorage.getItem(K)||"{}"); }catch(e){}
+  var host=location.hostname.match(/^([^.]+)\.github\.io$/);
+  var seg=location.pathname.split("/").filter(Boolean);
+  $("owner").value  = c.owner  || (host?host[1]:"");
+  $("repo").value   = c.repo   || (seg.length>1?seg[0]:"");
+  $("branch").value = c.branch || "main";
+  $("token").value  = c.token  || "";
+  if(!c.token) $("setup").open=true;
+  else $("setupStatus").innerHTML='<span class="ok">טוקן שמור ✓</span>';
+})();
+
+function cfg(){
+  return {owner:$("owner").value.trim(), repo:$("repo").value.trim(),
+          branch:$("branch").value.trim()||"main", token:$("token").value.trim()};
+}
+$("save").onclick=function(){
+  localStorage.setItem(K,JSON.stringify(cfg()));
+  $("setupStatus").innerHTML='<span class="ok">נשמר ✓</span>';
+};
+$("forget").onclick=function(){
+  localStorage.removeItem(K); $("token").value="";
+  $("setupStatus").textContent="הטוקן נמחק מהדפדפן.";
+};
+$("test").onclick=async function(){
+  var c=cfg();
+  $("setupStatus").textContent="בודק…";
+  try{
+    var r=await fetch("https://api.github.com/repos/"+c.owner+"/"+c.repo,
+      {headers:{Authorization:"Bearer "+c.token,Accept:"application/vnd.github+json"}});
+    if(r.status===200){
+      var j=await r.json();
+      var w=j.permissions&&j.permissions.push;
+      $("setupStatus").innerHTML = w ? '<span class="ok">מחובר עם הרשאת כתיבה ✓</span>'
+        : '<span style="color:var(--err)">מחובר, אבל בלי הרשאת כתיבה — בדוק Contents: Read and write</span>';
+    } else if(r.status===401) $("setupStatus").innerHTML='<span style="color:var(--err)">טוקן לא תקין</span>';
+    else if(r.status===404) $("setupStatus").innerHTML='<span style="color:var(--err)">הריפו לא נמצא, או שהטוקן לא מורשה עליו</span>';
+    else $("setupStatus").innerHTML='<span style="color:var(--err)">שגיאה '+r.status+'</span>';
+  }catch(e){ $("setupStatus").innerHTML='<span style="color:var(--err)">שגיאת רשת</span>'; }
+};
+
+/* ---------- כלים ---------- */
 function videoId(u){
   u=(u||"").trim();
   if(/^[A-Za-z0-9_-]{11}$/.test(u)) return u;
   var m=u.match(/(?:youtube\.com\/(?:watch\?(?:.*&)?v=|embed\/|shorts\/|live\/|v\/)|youtu\.be\/)([A-Za-z0-9_-]{11})/);
   return m?m[1]:null;
 }
+function b64bytes(bytes){
+  var s="",CH=0x8000;
+  for(var i=0;i<bytes.length;i+=CH) s+=String.fromCharCode.apply(null,bytes.subarray(i,i+CH));
+  return btoa(s);
+}
+async function b64blob(b){ return b64bytes(new Uint8Array(await b.arrayBuffer())); }
+function b64text(t){ return b64bytes(new TextEncoder().encode(t)); }
 
-/* ---- משיכת התמונה מיוטיוב דרך canvas ---- */
 function loadThumb(id){
-  var sizes=["maxresdefault","sddefault","hqdefault"];
-  var i=0;
-  return new Promise(function(resolve,reject){
+  var sizes=["maxresdefault","sddefault","hqdefault"], i=0;
+  return new Promise(function(res,rej){
     (function next(){
-      if(i>=sizes.length){ reject(new Error("לא נמצאה תמונה")); return; }
-      var im=new Image();
-      im.crossOrigin="anonymous";
-      im.onload=function(){
-        if(im.naturalWidth<200){ i++; next(); return; }   // תמונת placeholder
-        resolve(im);
-      };
+      if(i>=sizes.length){ rej(new Error("no thumb")); return; }
+      var im=new Image(); im.crossOrigin="anonymous";
+      im.onload=function(){ if(im.naturalWidth<200){i++;next();return;} res(im); };
       im.onerror=function(){ i++; next(); };
       im.src="https://i.ytimg.com/vi/"+id+"/"+sizes[i]+".jpg";
     })();
   });
 }
-
-/* ---- הקטנה ודחיסה ל-canvas -> blob ---- */
 function compress(im){
-  var MAX=1280, w=im.naturalWidth, h=im.naturalHeight;
+  var MAX=1280,w=im.naturalWidth,h=im.naturalHeight;
   if(w>MAX){ h=Math.round(h*MAX/w); w=MAX; }
-  var c=document.createElement("canvas");
-  c.width=w; c.height=h;
-  var x=c.getContext("2d");
-  x.fillStyle="#000"; x.fillRect(0,0,w,h);
-  x.drawImage(im,0,0,w,h);
+  var c=document.createElement("canvas"); c.width=w; c.height=h;
+  var x=c.getContext("2d"); x.fillStyle="#000"; x.fillRect(0,0,w,h); x.drawImage(im,0,0,w,h);
   return new Promise(function(res){
     var q=0.85;
-    (function step(){
-      c.toBlob(function(b){
-        if(b.size>300*1024 && q>0.45){ q-=0.1; step(); return; }
-        res({blob:b,w:w,h:h,q:q});
-      },"image/jpeg",q);
-    })();
+    (function s(){ c.toBlob(function(b){
+      if(b.size>300*1024&&q>0.45){ q-=0.1; s(); return; }
+      res({blob:b,w:w,h:h});
+    },"image/jpeg",q); })();
   });
 }
 
-function setImage(o){
-  S.blob=o.blob; S.w=o.w; S.h=o.h;
-  if(S.localUrl) URL.revokeObjectURL(S.localUrl);
-  S.localUrl=URL.createObjectURL(o.blob);
-  $("pimg").src=S.localUrl;
+/* ---------- העלאה לריפו ---------- */
+async function putFile(path,contentB64,msg){
+  var c=cfg();
+  var api="https://api.github.com/repos/"+c.owner+"/"+c.repo+"/contents/"+encodeURIComponent(path);
+  var H={Authorization:"Bearer "+c.token,Accept:"application/vnd.github+json",
+         "X-GitHub-Api-Version":"2022-11-28"};
+  var sha=null;
+  var g=await fetch(api+"?ref="+encodeURIComponent(c.branch),{headers:H});
+  if(g.status===200){ sha=(await g.json()).sha; }
+  var r=await fetch(api,{method:"PUT",headers:H,body:JSON.stringify({
+    message:msg, content:contentB64, branch:c.branch, sha:sha||undefined
+  })});
+  if(!r.ok){
+    var t=""; try{ t=(await r.json()).message||""; }catch(e){}
+    throw new Error(r.status+" "+t);
+  }
+  return r.json();
 }
 
-/* ---- בניית ה-HTML ---- */
+/* ---------- בניית הדף ---------- */
+function pagesBase(){
+  var c=cfg();
+  return "https://"+c.owner+".github.io/"+c.repo;
+}
 function build(){
-  var base=$("base").value.trim().replace(/\/+$/,"");
-  var page=base+"/"+S.htmlName;
-  var img=base+"/"+S.imgName;
-  var yt="https://www.youtube.com/watch?v="+S.id;
-  var t=S.title, d=S.desc;
+  var base=pagesBase();
+  var page=base+"/"+S.htmlName, img=base+"/"+S.imgName;
+  var yt="https://www.youtube.com/watch?v="+S.id, t=S.title, d=S.desc;
 
   S.html='<!DOCTYPE html>\n<html lang="he" dir="rtl">\n<head>\n'+
 '<meta charset="utf-8">\n<meta name="viewport" content="width=device-width, initial-scale=1">\n'+
@@ -233,102 +322,85 @@ function build(){
 '  location.replace('+JSON.stringify(yt)+');\n<\/script>\n</body>\n</html>\n';
 
   $("finalLink").textContent=page;
-  $("pt").textContent=t;
-  $("pd").textContent=d;
-  $("pu").textContent=base.replace(/^https?:\/\//,"").split("/")[0];
+  $("pt").textContent=t; $("pd").textContent=d;
+  $("pu").textContent=(location.hostname);
 }
 
-function refresh(){
-  S.title=$("title").value.trim()||"צפו בסרטון";
-  S.desc=$("desc").value.trim();
-  build();
-}
-
-/* ---- התהליך המרכזי ---- */
+/* ---------- התהליך ---------- */
 $("go").onclick=async function(){
+  var c=cfg();
+  if(!c.token||!c.owner||!c.repo){ $("setup").open=true;
+    $("setupStatus").innerHTML='<span style="color:var(--err)">מלא את ההגדרות תחילה</span>'; return; }
   var id=videoId($("url").value);
-  if(!id){ say("לא זוהה מזהה סרטון בקישור.",1); return; }
-  if(!$("base").value.trim()){ say("חסרה כתובת הבסיס.",1); return; }
+  if(!id){ alert("לא זוהה מזהה סרטון בקישור."); return; }
 
   S.id=id; S.imgName=id+".jpg"; S.htmlName=id+".html";
-  this.disabled=true;
+  this.disabled=true; $("out").classList.remove("show"); resetSteps();
 
-  say("מושך כותרת…");
   try{
-    var r=await fetch("https://www.youtube.com/oembed?format=json&url=https://www.youtube.com/watch?v="+id);
-    var j=await r.json();
-    $("title").value=j.title||"";
-    if(!$("desc").value.trim()) $("desc").value=j.author_name||"";
-  }catch(e){ say("הכותרת לא נמשכה — הקלד ידנית. ",1); }
+    step(1,"run");
+    try{
+      var r=await fetch("https://www.youtube.com/oembed?format=json&url=https://www.youtube.com/watch?v="+id);
+      var j=await r.json();
+      S.title=j.title||"צפו בסרטון"; S.desc=j.author_name||"";
+      step(1,"done");
+    }catch(e){ S.title="צפו בסרטון"; S.desc=""; step(1,"bad","לא נמשכה, ערוך ידנית למטה"); }
+    $("title").value=S.title; $("desc").value=S.desc;
 
-  say("מושך תמונה…");
-  try{
-    var im=await loadThumb(id);
-    var o=await compress(im);
-    setImage(o);
-    say("<b>מוכן ✓</b> "+o.w+"×"+o.h+" • "+Math.round(o.blob.size/1024)+"KB");
-  }catch(e){
-    say("משיכת התמונה נכשלה — גרור תמונה ידנית למטה.",1);
-    this.disabled=false;
+    step(2,"run");
+    var o=await compress(await loadThumb(id));
+    S.blob=o.blob; S.w=o.w; S.h=o.h;
+    if(S.localUrl) URL.revokeObjectURL(S.localUrl);
+    S.localUrl=URL.createObjectURL(o.blob); $("pimg").src=S.localUrl;
+    step(2,"done",o.w+"×"+o.h+" • "+Math.round(o.blob.size/1024)+"KB");
+
+    build();
+
+    step(3,"run");
+    await putFile(S.imgName, await b64blob(S.blob), "thumb "+id);
+    step(3,"done");
+
+    step(4,"run");
+    await putFile(S.htmlName, b64text(S.html), "page "+id);
+    step(4,"done");
+
+    step(5,"run");
+    await new Promise(function(r){ setTimeout(r,20000); });
+    step(5,"done","הדף אמור להיות חי");
+
     $("out").classList.add("show");
-    refresh();
-    return;
+    $("out").scrollIntoView({behavior:"smooth"});
+  }catch(e){
+    var n = $("s2").className.indexOf("done")<0 ? 2 :
+            $("s3").className.indexOf("done")<0 ? 3 :
+            $("s4").className.indexOf("done")<0 ? 4 : 5;
+    step(n,"bad",String(e.message||e));
   }
-
-  refresh();
-  $("out").classList.add("show");
-  $("out").scrollIntoView({behavior:"smooth"});
   this.disabled=false;
 };
 
-$("rebuild").onclick=refresh;
-$("url").addEventListener("keydown",function(e){ if(e.key==="Enter") $("go").click(); });
+$("reup").onclick=async function(){
+  S.title=$("title").value.trim()||"צפו בסרטון";
+  S.desc=$("desc").value.trim();
+  build();
+  $("reupStatus").textContent="מעלה…";
+  try{
+    await putFile(S.htmlName,b64text(S.html),"update "+S.id);
+    $("reupStatus").innerHTML='<span class="ok">עודכן ✓ — הרץ Scrape Again</span>';
+  }catch(e){ $("reupStatus").innerHTML='<span style="color:var(--err)">'+e.message+'</span>'; }
+};
 
-/* ---- גיבוי ידני ---- */
-function manual(f){
-  var fr=new FileReader();
-  fr.onload=function(e){
-    var im=new Image();
-    im.onload=async function(){
-      setImage(await compress(im));
-      say("<b>תמונה ידנית נטענה ✓</b>");
-      if(S.id){ refresh(); $("out").classList.add("show"); }
-    };
-    im.src=e.target.result;
-  };
-  fr.readAsDataURL(f);
-}
-$("drop").onclick=function(){ $("file").click(); };
-$("file").onchange=function(){ if(this.files[0]) manual(this.files[0]); };
-["dragenter","dragover"].forEach(function(ev){
-  $("drop").addEventListener(ev,function(e){e.preventDefault();this.classList.add("over");});
-});
-["dragleave","drop"].forEach(function(ev){
-  $("drop").addEventListener(ev,function(e){e.preventDefault();this.classList.remove("over");});
-});
-$("drop").addEventListener("drop",function(e){
-  var f=e.dataTransfer.files[0];
-  if(f&&/^image\//.test(f.type)) manual(f);
-});
-
-/* ---- הורדות ---- */
-function dl(blob,name){
-  var a=document.createElement("a");
-  a.href=URL.createObjectURL(blob); a.download=name; a.click();
-  setTimeout(function(){URL.revokeObjectURL(a.href);},1000);
-}
-$("dlImg").onclick=function(){ if(S.blob) dl(S.blob,S.imgName); };
-$("dlHtml").onclick=function(){ if(S.html) dl(new Blob([S.html],{type:"text/html;charset=utf-8"}),S.htmlName); };
 $("copy").onclick=function(){
   navigator.clipboard.writeText($("finalLink").textContent).then(function(){
-    var b=$("copy"); b.textContent="הועתק ✓";
-    setTimeout(function(){b.textContent="העתק";},1500);
+    var b=$("copy"); b.textContent="הועתק ✓"; setTimeout(function(){b.textContent="העתק קישור";},1500);
   });
 };
 $("dbg").onclick=function(){
   window.open("https://developers.facebook.com/tools/debug/?q="+
     encodeURIComponent($("finalLink").textContent),"_blank");
 };
+$("openPage").onclick=function(){ window.open($("finalLink").textContent,"_blank"); };
+$("url").addEventListener("keydown",function(e){ if(e.key==="Enter") $("go").click(); });
 </script>
 </body>
 </html>
