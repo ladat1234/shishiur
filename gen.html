@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>מחולל קישורים אוטומטי</title>
+<style>
+  :root{--bg:#0f1115;--card:#181b22;--line:#2a2f3a;--txt:#e8eaf0;
+    --dim:#9aa2b1;--acc:#25d366;--acc2:#128c7e;--warn:#f0b429;--err:#ff6b6b}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--txt);
+    font-family:"Segoe UI",Arial,Helvetica,sans-serif;line-height:1.6;padding:24px}
+  .wrap{max-width:860px;margin:0 auto}
+  h1{font-size:22px;margin:0 0 4px}
+  h2{font-size:15px;margin:0 0 12px;color:var(--acc)}
+  .sub{color:var(--dim);font-size:14px;margin-bottom:22px}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:18px;margin-bottom:16px}
+  label{display:block;font-size:13px;color:var(--dim);margin:12px 0 5px}
+  label:first-child{margin-top:0}
+  input,textarea{width:100%;background:#0f1218;border:1px solid var(--line);border-radius:8px;
+    color:var(--txt);padding:10px 12px;font-size:14px;font-family:inherit;direction:rtl}
+  input[dir=ltr]{direction:ltr;text-align:left}
+  textarea{min-height:60px;resize:vertical}
+  .big{font-size:16px;padding:14px}
+  button{background:var(--acc);color:#06210f;border:0;border-radius:8px;padding:12px 22px;
+    font-size:15px;font-weight:600;cursor:pointer;font-family:inherit}
+  button:hover{background:#1fb857}
+  button:disabled{opacity:.5;cursor:default}
+  button.ghost{background:transparent;border:1px solid var(--line);color:var(--txt);font-weight:500}
+  button.ghost:hover{background:#20242e}
+  .btns{display:flex;gap:10px;margin-top:16px;flex-wrap:wrap;align-items:center}
+  .status{font-size:13px;color:var(--dim);margin-top:12px;min-height:20px}
+  .status b{color:var(--acc)}
+  .status .bad{color:var(--err)}
+  .out{display:none}.out.show{display:block}
+  .link{background:#0f1218;border:1px solid var(--acc2);border-radius:8px;padding:12px;
+    font-family:Consolas,monospace;font-size:14px;direction:ltr;text-align:left;word-break:break-all}
+  .preview{background:#1f2c33;border-radius:10px;overflow:hidden;max-width:400px;margin-top:12px}
+  .preview img{width:100%;display:block;background:#000}
+  .preview .meta{padding:10px 12px}
+  .preview .t{font-size:14px;font-weight:600;color:#e9edef}
+  .preview .d{font-size:12px;color:#8696a0}
+  .preview .u{font-size:12px;color:#8696a0;margin-top:4px;direction:ltr;text-align:left}
+  .note{font-size:13px;color:var(--dim);border-right:3px solid var(--warn);padding:2px 12px;margin-top:16px}
+  .fatal{background:#3a1c1c;border:1px solid var(--err);color:#ffc9c9;border-radius:10px;
+    padding:14px;font-size:14px;margin-bottom:16px;display:none}
+  .fatal.show{display:block}
+  code{background:#0f1218;padding:2px 6px;border-radius:4px;font-size:13px;direction:ltr;display:inline-block}
+  ol{padding-right:20px;font-size:14px;color:var(--dim)}
+  ol li{margin-bottom:5px}
+  .drop{border:1px dashed var(--line);border-radius:8px;padding:12px;text-align:center;
+    color:var(--dim);cursor:pointer;font-size:13px;margin-top:10px}
+  .drop:hover,.drop.over{border-color:var(--acc);color:var(--txt)}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <h1>מחולל קישורים אוטומטי</h1>
+  <div class="sub">הדבק קישור יוטיוב — הכותרת והטאמבנייל נמשכים לבד.</div>
+
+  <div class="fatal" id="fatal">
+    <b>הדף פתוח כקובץ מקומי.</b> המשיכה האוטומטית עובדת רק מכתובת https.
+    העלה את הקובץ הזה לריפו שלך ופתח אותו משם — למשל
+    <code>https://ladat1234.github.io/shishiur/gen.html</code>
+  </div>
+
+  <div class="card">
+    <label>כתובת הבסיס שלך</label>
+    <input id="base" dir="ltr" value="">
+
+    <label>קישור יוטיוב</label>
+    <input id="url" class="big" dir="ltr" placeholder="https://www.youtube.com/watch?v=...">
+
+    <div class="btns">
+      <button id="go">משוך וצור</button>
+      <span class="status" id="status"></span>
+    </div>
+
+    <div class="drop" id="drop">אם המשיכה נכשלה — גרור לכאן תמונה ידנית</div>
+    <input type="file" id="file" accept="image/*" style="display:none">
+  </div>
+
+  <div class="card out" id="out">
+    <h2>עריכה</h2>
+    <label>כותרת</label>
+    <input id="title">
+    <label>תיאור</label>
+    <textarea id="desc"></textarea>
+    <div class="btns"><button class="ghost" id="rebuild">עדכן</button></div>
+
+    <h2 style="margin-top:22px">הורדה</h2>
+    <div class="btns" style="margin-top:0">
+      <button id="dlImg">הורד תמונה</button>
+      <button id="dlHtml">הורד HTML</button>
+    </div>
+    <ol style="margin-top:14px">
+      <li>העלה את שני הקבצים לריפו</li>
+      <li>המתן דקה</li>
+      <li>Scrape Again בדיבאגר</li>
+      <li>רק אז שתף</li>
+    </ol>
+
+    <h2 style="margin-top:22px">הקישור</h2>
+    <div class="link" id="finalLink"></div>
+    <div class="btns">
+      <button id="copy">העתק</button>
+      <button class="ghost" id="dbg">Sharing Debugger</button>
+    </div>
+
+    <div class="preview">
+      <img id="pimg" alt="">
+      <div class="meta">
+        <div class="t" id="pt"></div>
+        <div class="d" id="pd"></div>
+        <div class="u" id="pu"></div>
+      </div>
+    </div>
+
+    <div class="note">
+      אם הדיבאגר לא מציג תמונה בפעם הראשונה — לחץ Scrape Again שוב.
+      המשיכה הראשונה לעיתים רק מפעילה את התהליך ברקע.
+    </div>
+  </div>
+
+</div>
+
+<script>
+var S={id:"",title:"",desc:"",blob:null,w:0,h:0,localUrl:"",html:"",htmlName:"",imgName:""};
+
+function $(i){return document.getElementById(i);}
+function esc(s){return String(s||"").replace(/&/g,"&amp;").replace(/</g,"&lt;")
+  .replace(/>/g,"&gt;").replace(/"/g,"&quot;").replace(/'/g,"&#39;");}
+function say(m,bad){ $("status").innerHTML = bad ? '<span class="bad">'+m+'</span>' : m; }
+
+if(location.protocol==="file:") $("fatal").classList.add("show");
+$("base").value = location.protocol==="file:" ? "" :
+  location.origin + location.pathname.replace(/\/[^\/]*$/,"");
+
+function videoId(u){
+  u=(u||"").trim();
+  if(/^[A-Za-z0-9_-]{11}$/.test(u)) return u;
+  var m=u.match(/(?:youtube\.com\/(?:watch\?(?:.*&)?v=|embed\/|shorts\/|live\/|v\/)|youtu\.be\/)([A-Za-z0-9_-]{11})/);
+  return m?m[1]:null;
+}
+
+/* ---- משיכת התמונה מיוטיוב דרך canvas ---- */
+function loadThumb(id){
+  var sizes=["maxresdefault","sddefault","hqdefault"];
+  var i=0;
+  return new Promise(function(resolve,reject){
+    (function next(){
+      if(i>=sizes.length){ reject(new Error("לא נמצאה תמונה")); return; }
+      var im=new Image();
+      im.crossOrigin="anonymous";
+      im.onload=function(){
+        if(im.naturalWidth<200){ i++; next(); return; }   // תמונת placeholder
+        resolve(im);
+      };
+      im.onerror=function(){ i++; next(); };
+      im.src="https://i.ytimg.com/vi/"+id+"/"+sizes[i]+".jpg";
+    })();
+  });
+}
+
+/* ---- הקטנה ודחיסה ל-canvas -> blob ---- */
+function compress(im){
+  var MAX=1280, w=im.naturalWidth, h=im.naturalHeight;
+  if(w>MAX){ h=Math.round(h*MAX/w); w=MAX; }
+  var c=document.createElement("canvas");
+  c.width=w; c.height=h;
+  var x=c.getContext("2d");
+  x.fillStyle="#000"; x.fillRect(0,0,w,h);
+  x.drawImage(im,0,0,w,h);
+  return new Promise(function(res){
+    var q=0.85;
+    (function step(){
+      c.toBlob(function(b){
+        if(b.size>300*1024 && q>0.45){ q-=0.1; step(); return; }
+        res({blob:b,w:w,h:h,q:q});
+      },"image/jpeg",q);
+    })();
+  });
+}
+
+function setImage(o){
+  S.blob=o.blob; S.w=o.w; S.h=o.h;
+  if(S.localUrl) URL.revokeObjectURL(S.localUrl);
+  S.localUrl=URL.createObjectURL(o.blob);
+  $("pimg").src=S.localUrl;
+}
+
+/* ---- בניית ה-HTML ---- */
+function build(){
+  var base=$("base").value.trim().replace(/\/+$/,"");
+  var page=base+"/"+S.htmlName;
+  var img=base+"/"+S.imgName;
+  var yt="https://www.youtube.com/watch?v="+S.id;
+  var t=S.title, d=S.desc;
+
+  S.html='<!DOCTYPE html>\n<html lang="he" dir="rtl">\n<head>\n'+
+'<meta charset="utf-8">\n<meta name="viewport" content="width=device-width, initial-scale=1">\n'+
+'<title>'+esc(t)+'</title>\n\n'+
+'<meta property="og:type" content="article">\n'+
+'<meta property="og:title" content="'+esc(t)+'">\n'+
+'<meta property="og:description" content="'+esc(d)+'">\n'+
+'<meta property="og:image" content="'+esc(img)+'">\n'+
+'<meta property="og:image:secure_url" content="'+esc(img)+'">\n'+
+'<meta property="og:image:type" content="image/jpeg">\n'+
+'<meta property="og:image:width" content="'+S.w+'">\n'+
+'<meta property="og:image:height" content="'+S.h+'">\n'+
+'<meta property="og:image:alt" content="'+esc(t)+'">\n'+
+'<meta property="og:url" content="'+esc(page)+'">\n'+
+'<meta property="og:locale" content="he_IL">\n\n'+
+'<meta name="twitter:card" content="summary_large_image">\n'+
+'<meta name="twitter:title" content="'+esc(t)+'">\n'+
+'<meta name="twitter:description" content="'+esc(d)+'">\n'+
+'<meta name="twitter:image" content="'+esc(img)+'">\n\n'+
+'<meta name="description" content="'+esc(d)+'">\n'+
+'<link rel="canonical" href="'+esc(yt)+'">\n'+
+'<style>\nhtml,body{height:100%;margin:0;background:#0f0f0f;color:#fff;\n'+
+'  font-family:"Segoe UI",Arial,sans-serif;display:flex;align-items:center;\n'+
+'  justify-content:center;text-align:center;padding:24px}\n'+
+'a{color:#ff4444;font-size:18px}\n'+
+'img{max-width:min(480px,90vw);border-radius:10px;margin-bottom:18px}\n</style>\n'+
+'</head>\n<body>\n<div>\n'+
+'  <img src="'+esc(S.imgName)+'" alt="">\n'+
+'  <h1 style="font-size:19px;font-weight:600">'+esc(t)+'</h1>\n'+
+'  <p style="color:#aaa;font-size:15px">מעביר אותך ליוטיוב…</p>\n'+
+'  <p><a href="'+esc(yt)+'">לחץ כאן אם ההעברה לא מתבצעת</a></p>\n'+
+'</div>\n<script>\n'+
+'  /* סורקי תצוגה מקדימה לא מריצים JS ולכן קוראים את תגיות ה-OG. */\n'+
+'  location.replace('+JSON.stringify(yt)+');\n<\/script>\n</body>\n</html>\n';
+
+  $("finalLink").textContent=page;
+  $("pt").textContent=t;
+  $("pd").textContent=d;
+  $("pu").textContent=base.replace(/^https?:\/\//,"").split("/")[0];
+}
+
+function refresh(){
+  S.title=$("title").value.trim()||"צפו בסרטון";
+  S.desc=$("desc").value.trim();
+  build();
+}
+
+/* ---- התהליך המרכזי ---- */
+$("go").onclick=async function(){
+  var id=videoId($("url").value);
+  if(!id){ say("לא זוהה מזהה סרטון בקישור.",1); return; }
+  if(!$("base").value.trim()){ say("חסרה כתובת הבסיס.",1); return; }
+
+  S.id=id; S.imgName=id+".jpg"; S.htmlName=id+".html";
+  this.disabled=true;
+
+  say("מושך כותרת…");
+  try{
+    var r=await fetch("https://www.youtube.com/oembed?format=json&url=https://www.youtube.com/watch?v="+id);
+    var j=await r.json();
+    $("title").value=j.title||"";
+    if(!$("desc").value.trim()) $("desc").value=j.author_name||"";
+  }catch(e){ say("הכותרת לא נמשכה — הקלד ידנית. ",1); }
+
+  say("מושך תמונה…");
+  try{
+    var im=await loadThumb(id);
+    var o=await compress(im);
+    setImage(o);
+    say("<b>מוכן ✓</b> "+o.w+"×"+o.h+" • "+Math.round(o.blob.size/1024)+"KB");
+  }catch(e){
+    say("משיכת התמונה נכשלה — גרור תמונה ידנית למטה.",1);
+    this.disabled=false;
+    $("out").classList.add("show");
+    refresh();
+    return;
+  }
+
+  refresh();
+  $("out").classList.add("show");
+  $("out").scrollIntoView({behavior:"smooth"});
+  this.disabled=false;
+};
+
+$("rebuild").onclick=refresh;
+$("url").addEventListener("keydown",function(e){ if(e.key==="Enter") $("go").click(); });
+
+/* ---- גיבוי ידני ---- */
+function manual(f){
+  var fr=new FileReader();
+  fr.onload=function(e){
+    var im=new Image();
+    im.onload=async function(){
+      setImage(await compress(im));
+      say("<b>תמונה ידנית נטענה ✓</b>");
+      if(S.id){ refresh(); $("out").classList.add("show"); }
+    };
+    im.src=e.target.result;
+  };
+  fr.readAsDataURL(f);
+}
+$("drop").onclick=function(){ $("file").click(); };
+$("file").onchange=function(){ if(this.files[0]) manual(this.files[0]); };
+["dragenter","dragover"].forEach(function(ev){
+  $("drop").addEventListener(ev,function(e){e.preventDefault();this.classList.add("over");});
+});
+["dragleave","drop"].forEach(function(ev){
+  $("drop").addEventListener(ev,function(e){e.preventDefault();this.classList.remove("over");});
+});
+$("drop").addEventListener("drop",function(e){
+  var f=e.dataTransfer.files[0];
+  if(f&&/^image\//.test(f.type)) manual(f);
+});
+
+/* ---- הורדות ---- */
+function dl(blob,name){
+  var a=document.createElement("a");
+  a.href=URL.createObjectURL(blob); a.download=name; a.click();
+  setTimeout(function(){URL.revokeObjectURL(a.href);},1000);
+}
+$("dlImg").onclick=function(){ if(S.blob) dl(S.blob,S.imgName); };
+$("dlHtml").onclick=function(){ if(S.html) dl(new Blob([S.html],{type:"text/html;charset=utf-8"}),S.htmlName); };
+$("copy").onclick=function(){
+  navigator.clipboard.writeText($("finalLink").textContent).then(function(){
+    var b=$("copy"); b.textContent="הועתק ✓";
+    setTimeout(function(){b.textContent="העתק";},1500);
+  });
+};
+$("dbg").onclick=function(){
+  window.open("https://developers.facebook.com/tools/debug/?q="+
+    encodeURIComponent($("finalLink").textContent),"_blank");
+};
+</script>
+</body>
+</html>
